@@ -1,10 +1,6 @@
-Welcome to MythicalLTD
+Welcome to MythicalSystems
 
-Website: https://mythicalnodes.xyz
+Website: https://mythicalsystems.tech
 
-App cdn: https://appcdn.mythicalnodes.xyz
-
-Docs: https://docs.mythicalnodes.xyz
-
-Discord: https://discord.gg/mythicalnodes-free-paid-hosting-1036340064445276190
+Discord: https://dsc.gg/mythicalsystems
 
