@@ -1,6 +1,6 @@
 ![Logo](https://i.imgur.com/xI3GLFc.jpeg)
-<p align="center"><img src="https://discord.com/api/guilds/1080933452091752448/widget.png?style=shield"> 
-<p align="center"><img src="https://img.shields.io/badge/License-MIT-green.svg"> 
+<p href="#" align="center"><img src="https://discord.com/api/guilds/1080933452091752448/widget.png?style=shield"> 
+<p href="#" align="center"><img src="https://img.shields.io/badge/License-MIT-green.svg"> 
 
 
 # MythicalSystems
