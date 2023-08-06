@@ -14,6 +14,7 @@ MythicalSystems is an open-source project development group that makes awesome p
 [@Nyxalis](https://github.com/Nyxalis)*
 
 Website: https://mythicalsystems.tech
+
 Discord: https://discord.gg/7BZTmSK2D8
 
 *All projects are under copyright: MythicalSystems 2021-2023*
