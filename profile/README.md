@@ -13,7 +13,7 @@ MythicalSystems is an open-source project development group that makes awesome p
 [@SuperHori](https://github.com/superhori69),
 [@Nyxalis](https://github.com/Nyxalis)*
 
-Website: https://mythicalsystems.tech
+Website: https://mythicalsystems.me
 
 Discord: https://discord.gg/3FWyugpznc
 
