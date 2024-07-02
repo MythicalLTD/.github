@@ -5,7 +5,7 @@
 
 # MythicalSystems
 
-MythicalSystems is an open-source project development group that makes awesome projects for the community.
+MythicalSystems ~~is~~ was an open-source project development group that makes awesome projects for the community.
 
 *Project by 
 [@NaysKutzu](https://github.com/NaysKutzu),
