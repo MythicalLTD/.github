@@ -11,8 +11,8 @@ MythicalSystems is an open-source project development group that makes awesome p
 [@NaysKutzu](https://github.com/NaysKutzu),
 [@Nyxalis](https://github.com/Nyxalis)*
 
-Website: https://mythicalsystems.xyz
+Website: https://www.mythical.systems
 
-Discord: https://discord.mythicalsystems.xyz
+Discord: https://discord.mythical.systems
 
-*All projects are under copyright: MythicalSystems 2021-2024*
+*All projects are under copyright: MythicalSystems 2021-2026*
