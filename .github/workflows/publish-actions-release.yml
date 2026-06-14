@@ -3,6 +3,17 @@ name: Publish actions release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Re-sync an existing release tag (e.g. v1.0.0)
+        required: true
+        type: string
+      refresh_notes:
+        description: Replace the auto-generated usage block on the release
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -11,18 +22,44 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve release context
+        id: context
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_REFRESH: ${{ inputs.refresh_notes }}
+        run: |
+          set -euo pipefail
+
+          if [ "${EVENT_NAME}" = "release" ]; then
+            tag="${RELEASE_TAG}"
+            prerelease="${RELEASE_PRERELEASE}"
+            refresh="false"
+          else
+            tag="${INPUT_TAG}"
+            prerelease="$(gh release view "${tag}" --json isPrerelease --jq .isPrerelease 2>/dev/null || echo false)"
+            refresh="${INPUT_REFRESH}"
+          fi
+
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+          echo "refresh_notes=${refresh}" >> "$GITHUB_OUTPUT"
+          echo "Using tag: ${tag} (prerelease: ${prerelease})"
+
       - name: Checkout release tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ steps.context.outputs.tag }}
           fetch-depth: 0
 
       - name: Validate tag and resolve major version
         id: meta
         shell: bash
         env:
-          TAG: ${{ github.event.release.tag_name }}
-          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+          TAG: ${{ steps.context.outputs.tag }}
         run: |
           set -euo pipefail
 
@@ -34,7 +71,6 @@ jobs:
           major="v$(echo "${TAG#v}" | cut -d. -f1)"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "major=${major}" >> "$GITHUB_OUTPUT"
-          echo "Release tag: ${TAG} (major: ${major}, prerelease: ${IS_PRERELEASE})"
 
       - name: Verify actions and scripts
         shell: bash
@@ -60,13 +96,13 @@ jobs:
             exit 1
           fi
 
-          echo "All actions and scripts present"
+          echo "All 3 actions verified: build-fpa, publish-release, build-and-release"
 
       - name: Update moving major tag
-        if: github.event.release.prerelease == false
+        if: steps.context.outputs.prerelease == 'false'
         shell: bash
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ steps.meta.outputs.tag }}
           MAJOR: ${{ steps.meta.outputs.major }}
         run: |
           set -euo pipefail
@@ -76,28 +112,45 @@ jobs:
           git push origin "${MAJOR}" --force
           echo "Moved ${MAJOR} → ${TAG}"
 
-      - name: Append usage notes to release
-        if: github.event.release.prerelease == false
+      - name: Update release notes
+        if: steps.context.outputs.prerelease == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ steps.meta.outputs.tag }}
           MAJOR: ${{ steps.meta.outputs.major }}
+          REFRESH: ${{ steps.context.outputs.refresh_notes }}
         shell: bash
         run: |
           set -euo pipefail
 
           existing="$(gh release view "${TAG}" --json body --jq .body)"
 
-          if [[ "${existing}" == *"MythicalLTD/.github/actions"* ]]; then
-            echo "Usage block already present — skipping"
+          if [[ "${REFRESH}" == "true" && "${existing}" == *"## Actions in this release"* ]]; then
+            existing="$(printf '%s' "${existing}" | sed '/^---$/,$d' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')"
+          elif [[ "${existing}" == *"actions/build-fpa@"* ]]; then
+            echo "Usage block already present — skipping (use workflow_dispatch + refresh_notes to replace)"
             exit 0
           fi
 
           {
-            printf '%s\n\n---\n\n### Usage\n\n' "${existing}"
-            printf '```yaml\n- uses: MythicalLTD/.github/actions/build-and-release@%s\n```\n\n' "${MAJOR}"
-            printf 'Exact pin: `@%s`\n\n' "${TAG}"
-            printf 'Docs: https://github.com/MythicalLTD/.github/blob/main/docs/getting-started.md\n'
+            printf '%s\n\n---\n\n' "${existing}"
+            printf '## Actions in this release\n\n'
+            printf 'All **3 actions** ship at the same tag (`%s` / `%s`):\n\n' "${TAG}" "${MAJOR}"
+            printf '| Action | Use case |\n'
+            printf '| --- | --- |\n'
+            printf '| [`build-fpa`](https://github.com/MythicalLTD/.github/tree/%s/actions/build-fpa) | Build `.fpa` only (compiler) |\n' "${TAG}"
+            printf '| [`publish-release`](https://github.com/MythicalLTD/.github/tree/%s/actions/publish-release) | Upload to marketplace only |\n' "${TAG}"
+            printf '| [`build-and-release`](https://github.com/MythicalLTD/.github/tree/%s/actions/build-and-release) | Build `.fpa` + upload |\n\n' "${TAG}"
+            printf '### Usage\n\n'
+            printf '```yaml\n'
+            printf '# Build .fpa only\n'
+            printf '- uses: MythicalLTD/.github/actions/build-fpa@%s\n\n' "${MAJOR}"
+            printf '# Upload an existing file\n'
+            printf '- uses: MythicalLTD/.github/actions/publish-release@%s\n\n' "${MAJOR}"
+            printf '# Build + upload\n'
+            printf '- uses: MythicalLTD/.github/actions/build-and-release@%s\n' "${MAJOR}"
+            printf '```\n\n'
+            printf 'Exact pin: `@%s` · Docs: https://github.com/MythicalLTD/.github/blob/main/docs/getting-started.md\n' "${TAG}"
           } > /tmp/release-notes.md
 
           gh release edit "${TAG}" --notes-file /tmp/release-notes.md
@@ -107,29 +160,22 @@ jobs:
         env:
           TAG: ${{ steps.meta.outputs.tag }}
           MAJOR: ${{ steps.meta.outputs.major }}
-          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+          IS_PRERELEASE: ${{ steps.context.outputs.prerelease }}
         run: |
           {
             echo "## Actions release published"
             echo ""
-            echo "| | |"
+            echo "**3 actions** at \`${TAG}\` (pin \`${MAJOR}\`):"
+            echo ""
+            echo "| Action | Path |"
             echo "| --- | --- |"
-            echo "| Tag | \`${TAG}\` |"
-            echo "| Major pin | \`${MAJOR}\` |"
-            echo "| Prerelease | ${IS_PRERELEASE} |"
+            echo "| build-fpa | \`actions/build-fpa\` |"
+            echo "| publish-release | \`actions/publish-release\` |"
+            echo "| build-and-release | \`actions/build-and-release\` |"
             echo ""
             if [[ "${IS_PRERELEASE}" == "false" ]]; then
-              echo "Moving tag **${MAJOR}** now points at **${TAG}**."
-              echo ""
+              echo "Moving tag **${MAJOR}** → **${TAG}**"
             else
-              echo "Prerelease — moving major tag was **not** updated."
-              echo ""
+              echo "Prerelease — major tag not updated."
             fi
-            echo "### Plugin author pin"
-            echo ""
-            echo "\`\`\`yaml"
-            echo "- uses: MythicalLTD/.github/actions/build-fpa@${MAJOR}"
-            echo "- uses: MythicalLTD/.github/actions/publish-release@${MAJOR}"
-            echo "- uses: MythicalLTD/.github/actions/build-and-release@${MAJOR}"
-            echo "\`\`\`"
           } >> "$GITHUB_STEP_SUMMARY"
