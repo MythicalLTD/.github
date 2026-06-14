@@ -9,5 +9,5 @@
 
 ## Examples
 
-- [examples/workflows/](../examples/workflows/) — sample workflows for your plugin repo
+- [examples/workflows/release-fpa.yml](../examples/workflows/release-fpa.yml) — release workflow for your plugin repo
 - [examples/featherexport/](../examples/featherexport/) — `.featherexport` templates

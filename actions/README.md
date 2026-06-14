@@ -104,22 +104,32 @@ All build inputs + `product_id`, `environment`, `changelog`, optional `version` 
 
 ## Compose your own workflow
 
-**Same job** — build then publish separately:
+**Recommended — tested end-to-end:** [examples/workflows/release-fpa.yml](../examples/workflows/release-fpa.yml)
+
+Copy to `.github/workflows/release-fpa.yml`. It checks secrets, syncs `conf.yml`, builds, publishes to Mythic Marketplace, creates a GitHub release, and commits version bumps.
+
+**Same job — build then publish separately:**
 
 ```yaml
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: MythicalLTD/.github/actions/build-fpa@v1
-        id: fpa
+        id: build
+        with:
+          skip_checkout: "true"
+          build_frontend: "false"
+          package_manager: none
+          artifact_name: ""
       - uses: MythicalLTD/.github/actions/publish-release@v1
         with:
-          product_id: "123"
-          environment: dev
-          version: ${{ steps.fpa.outputs.plugin_version }}
+          product_id: ${{ secrets.MYTHIC_PRODUCT_ID }}
+          environment: production
+          version: ${{ steps.build.outputs.plugin_version }}
           changelog: "Release"
-          file_path: ${{ steps.fpa.outputs.fpa_file }}
+          file_path: ${{ steps.build.outputs.fpa_file }}
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 

@@ -142,12 +142,15 @@ jobs:
             printf '| [`publish-release`](https://github.com/MythicalLTD/.github/tree/%s/actions/publish-release) | Upload to marketplace only |\n' "${TAG}"
             printf '| [`build-and-release`](https://github.com/MythicalLTD/.github/tree/%s/actions/build-and-release) | Build `.fpa` + upload |\n\n' "${TAG}"
             printf '### Usage\n\n'
+            printf 'Copy the tested workflow into your plugin repo:\n\n'
+            printf '[`examples/workflows/release-fpa.yml`](https://github.com/MythicalLTD/.github/blob/%s/examples/workflows/release-fpa.yml) → `.github/workflows/release-fpa.yml`\n\n' "${TAG}"
+            printf 'Or compose actions yourself:\n\n'
             printf '```yaml\n'
             printf '%s\n' '# Build .fpa only'
             printf '%s\n\n' "- uses: MythicalLTD/.github/actions/build-fpa@${MAJOR}"
             printf '%s\n' '# Upload an existing file'
             printf '%s\n\n' "- uses: MythicalLTD/.github/actions/publish-release@${MAJOR}"
-            printf '%s\n' '# Build + upload'
+            printf '%s\n' '# Build + upload (single step)'
             printf '%s\n' "- uses: MythicalLTD/.github/actions/build-and-release@${MAJOR}"
             printf '```\n\n'
             printf 'Exact pin: `@%s` · Docs: https://github.com/MythicalLTD/.github/blob/main/docs/getting-started.md\n' "${TAG}"

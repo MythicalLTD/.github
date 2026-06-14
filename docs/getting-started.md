@@ -41,51 +41,22 @@ Full guide: [featherexport.md](featherexport.md)
 
 ### 3. Your workflow
 
-Write your own `.github/workflows/*.yml` using our actions as steps.
+Copy the tested example into your repo:
 
-**Build only:**
+**[examples/workflows/release-fpa.yml](../examples/workflows/release-fpa.yml)** → `.github/workflows/release-fpa.yml`
 
-```yaml
-name: Build FPA
-on:
-  push:
-    branches: [main]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: MythicalLTD/.github/actions/build-fpa@v1
-```
-
-**Build + publish on tag:**
-
-```yaml
-name: Release FPA
-on:
-  push:
-    tags: ["v*"]
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: MythicalLTD/.github/actions/build-and-release@v1
-        with:
-          product_id: "123"
-          environment: dev
-          changelog: ${{ github.event.head_commit.message }}
-          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
-```
-
-More examples: [examples/workflows/](../examples/workflows/)
+It validates secrets, resolves version from input or `conf.yml`, builds the `.fpa`, publishes to Mythic Marketplace, creates a GitHub release, and commits a version bump when needed.
 
 Action reference: [actions/README.md](../actions/README.md)
 
-### 4. Marketplace secret
+### 4. Marketplace secrets
 
 1. Product → **Releases → Automated Release Uploads** → create upload secret
-2. Repo → **Settings → Secrets → Actions** → `MYTHIC_RELEASE_TOKEN`
+2. Repo → **Settings → Secrets → Actions**:
+   - `MYTHIC_RELEASE_TOKEN` — upload secret (`mp_rel_...`)
+   - `MYTHIC_PRODUCT_ID` — product ID from the marketplace
 
-Pass the token to actions via `with: release_token:` — composite actions cannot use the workflow `secrets:` keyword at the step level. Values from `${{ secrets.* }}` are still masked in logs.
+Pass tokens to actions via `with:` — composite actions cannot use the workflow `secrets:` keyword at the step level. Values from `${{ secrets.* }}` are still masked in logs.
 
 ---
 
@@ -98,27 +69,6 @@ Pass the token to actions via `with: release_token:` — composite actions canno
 | Build + publish | `uses: MythicalLTD/.github/actions/build-and-release@v1` |
 
 ---
-
-## Compose multiple steps
-
-```yaml
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: MythicalLTD/.github/actions/build-fpa@v1
-        id: fpa
-      - uses: MythicalLTD/.github/actions/publish-release@v1
-        with:
-          product_id: "123"
-          environment: dev
-          version: ${{ steps.fpa.outputs.plugin_version }}
-          changelog: "Release"
-          file_path: ${{ steps.fpa.outputs.fpa_file }}
-          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
-```
-
-Or use `build-and-release` as a single step.
 
 ---
 
@@ -135,5 +85,5 @@ Do not use `@main` in production.
 ## Next steps
 
 - [Actions reference](../actions/README.md)
-- [Example workflows](../examples/workflows/)
+- [Example workflow](../examples/workflows/release-fpa.yml)
 - [Publish API docs](https://publish-dev.mythicalsystems.org/docs)

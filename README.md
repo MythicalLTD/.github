@@ -6,22 +6,9 @@ You write your own workflows — we provide the steps.
 
 ## Quick start
 
-```yaml
-name: Release FPA
-on:
-  push:
-    tags: ["v*"]
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: MythicalLTD/.github/actions/build-and-release@v1
-        with:
-          product_id: "123"
-          environment: dev
-          changelog: ${{ github.event.head_commit.message }}
-          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
-```
+Copy [examples/workflows/release-fpa.yml](examples/workflows/release-fpa.yml) into your plugin repo as `.github/workflows/release-fpa.yml`.
+
+Set secrets `MYTHIC_PRODUCT_ID` and `MYTHIC_RELEASE_TOKEN`, then run **Actions → Release FPA → Run workflow**.
 
 ## Actions
 
@@ -40,7 +27,7 @@ Pin `@v1` in production — not `@main`.
 | [Getting started](docs/getting-started.md) | Plugin repo setup |
 | [Actions reference](actions/README.md) | All inputs & outputs |
 | [`.featherexport`](docs/featherexport.md) | Exclude files from the `.fpa` |
-| [Example workflows](examples/README.md) | Copy-paste YAML for your repo |
+| [Example workflow](examples/workflows/release-fpa.yml) | Copy-paste release workflow |
 | [Publishing this repo](docs/publishing-this-repo.md) | Maintainers |
 
 ## `.featherexport`
@@ -60,7 +47,7 @@ Copy [examples/featherexport/minimal.featherexport](examples/featherexport/minim
 ```
 actions/           build-fpa, publish-release, build-and-release
 scripts/           build + publish shell scripts
-examples/workflows Sample workflows you copy into your plugin repo
+examples/workflows release-fpa.yml — copy into your plugin repo
 templates/         .featherexport template
 docs/              Documentation
 ```
