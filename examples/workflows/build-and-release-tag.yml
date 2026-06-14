@@ -18,5 +18,4 @@ jobs:
           product_id: "123"
           environment: dev
           changelog: ${{ github.event.head_commit.message }}
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

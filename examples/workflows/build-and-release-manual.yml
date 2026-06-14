@@ -35,5 +35,4 @@ jobs:
           version: ${{ inputs.version }}
           changelog: ${{ inputs.changelog }}
           package_manager: auto
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

@@ -1,0 +1,46 @@
+# Build .fpa and publish in separate steps — recommended when you need build outputs
+# before upload (e.g. dynamic version/changelog from conf.yml).
+#
+# Copy to: .github/workflows/release-fpa.yml
+
+name: Release FPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        default: ""
+      environment:
+        type: choice
+        options: [production, dev]
+        default: production
+      changelog:
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: MythicalLTD/.github/actions/build-fpa@v1
+        id: build
+        with:
+          build_frontend: "false"
+          package_manager: none
+          artifact_name: ""
+      - uses: MythicalLTD/.github/actions/publish-release@v1
+        id: publish
+        with:
+          product_id: ${{ secrets.MYTHIC_PRODUCT_ID }}
+          environment: ${{ inputs.environment }}
+          version: ${{ inputs.version != '' && inputs.version || steps.build.outputs.plugin_version }}
+          changelog: ${{ inputs.changelog != '' && inputs.changelog || format('Release {0}', steps.build.outputs.plugin_version) }}
+          file_path: ${{ steps.build.outputs.fpa_file }}
+          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

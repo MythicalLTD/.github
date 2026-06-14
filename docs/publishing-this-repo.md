@@ -68,9 +68,10 @@ jobs:
           product_id: "123"
           environment: dev
           changelog: "Bug fixes"
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
+
+Pass tokens via `with:` — composite actions cannot use the workflow `secrets:` keyword.
 
 | Pin | Meaning |
 | --- | --- |
@@ -86,7 +87,7 @@ jobs:
 | --- | --- |
 | Bug fix | `v1.0.1` |
 | New optional input | `v1.1.0` |
-| Breaking change | `v2.0.0` → workflow moves `v2` tag |
+| Breaking change (invalid `secrets:` at step level) | `v2.0.0` → workflow moves `v2` tag |
 
 ---
 

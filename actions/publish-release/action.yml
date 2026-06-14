@@ -25,8 +25,6 @@ inputs:
     description: Optional release title.
     required: false
     default: ""
-
-secrets:
   release_token:
     description: Upload secret (mp_rel_...) from Automated Release Uploads.
     required: true
@@ -46,7 +44,7 @@ runs:
       id: publish
       shell: bash
       env:
-        MYTHIC_RELEASE_TOKEN: ${{ secrets.release_token }}
+        MYTHIC_RELEASE_TOKEN: ${{ inputs.release_token }}
       run: |
         chmod +x "${GITHUB_ACTION_PATH}/../../scripts/publish-release.sh"
         "${GITHUB_ACTION_PATH}/../../scripts/publish-release.sh" \

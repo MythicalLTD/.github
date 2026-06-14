@@ -47,10 +47,8 @@ inputs:
     description: Node.js version.
     required: false
     default: "24"
-
-secrets:
   release_token:
-    description: Upload secret (mp_rel_...).
+    description: Upload secret (mp_rel_...) from Automated Release Uploads.
     required: true
 
 outputs:
@@ -98,5 +96,4 @@ runs:
         changelog: ${{ inputs.changelog }}
         file_path: ${{ steps.build.outputs.fpa_file }}
         title: ${{ inputs.title }}
-      secrets:
-        release_token: ${{ secrets.release_token }}
+        release_token: ${{ inputs.release_token }}

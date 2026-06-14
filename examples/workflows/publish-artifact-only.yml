@@ -26,5 +26,4 @@ jobs:
           version: ${{ inputs.version }}
           changelog: ${{ inputs.changelog }}
           file_path: dist/my-plugin.fpa
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

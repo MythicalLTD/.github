@@ -30,5 +30,4 @@ jobs:
           changelog: "Release ${{ github.ref_name }}"
           build_frontend: "false"
           package_manager: none
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

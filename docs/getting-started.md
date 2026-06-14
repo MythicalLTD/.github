@@ -73,7 +73,6 @@ jobs:
           product_id: "123"
           environment: dev
           changelog: ${{ github.event.head_commit.message }}
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 
@@ -85,6 +84,8 @@ Action reference: [actions/README.md](../actions/README.md)
 
 1. Product → **Releases → Automated Release Uploads** → create upload secret
 2. Repo → **Settings → Secrets → Actions** → `MYTHIC_RELEASE_TOKEN`
+
+Pass the token to actions via `with: release_token:` — composite actions cannot use the workflow `secrets:` keyword at the step level. Values from `${{ secrets.* }}` are still masked in logs.
 
 ---
 
@@ -114,7 +115,6 @@ jobs:
           version: ${{ steps.fpa.outputs.plugin_version }}
           changelog: "Release"
           file_path: ${{ steps.fpa.outputs.fpa_file }}
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 

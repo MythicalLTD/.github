@@ -44,10 +44,11 @@ Use as **steps** in your own workflows — like `actions/checkout@v4`.
 | `changelog` | — | Release notes |
 | `file_path` | — | Path to file on runner |
 | `title` | — | Optional title |
-
-**Secret:** `release_token` (`mp_rel_...`)
+| `release_token` | — | Upload secret (`mp_rel_...`) |
 
 **Outputs:** `release_id`, `release_url`
+
+Pass tokens via `with:` — composite actions cannot use the workflow `secrets:` keyword. Values from `${{ secrets.* }}` are still masked in logs.
 
 ```yaml
 - uses: actions/checkout@v4
@@ -58,7 +59,6 @@ Use as **steps** in your own workflows — like `actions/checkout@v4`.
     version: "1.2.0"
     changelog: "Bug fixes"
     file_path: myaddon-1.2.0.fpa
-  secrets:
     release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 
@@ -70,9 +70,7 @@ Use as **steps** in your own workflows — like `actions/checkout@v4`.
 
 `uses: MythicalLTD/.github/actions/build-and-release@v1`
 
-All build inputs + `product_id`, `environment`, `changelog`, optional `version` / `title`.
-
-**Secret:** `release_token`
+All build inputs + `product_id`, `environment`, `changelog`, optional `version` / `title`, and `release_token`.
 
 **Outputs:** all build outputs + `release_id`, `release_url`
 
@@ -82,7 +80,6 @@ All build inputs + `product_id`, `environment`, `changelog`, optional `version` 
     product_id: "123"
     environment: dev
     changelog: "Bug fixes"
-  secrets:
     release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 
@@ -106,7 +103,6 @@ jobs:
           version: ${{ steps.fpa.outputs.plugin_version }}
           changelog: "Release"
           file_path: ${{ steps.fpa.outputs.fpa_file }}
-        secrets:
           release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}
 ```
 
