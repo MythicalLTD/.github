@@ -1,0 +1,191 @@
+name: Build FeatherPanel FPA
+description: Build a password-protected FeatherPanel .fpa from your plugin repo.
+branding:
+  icon: package
+  color: purple
+
+inputs:
+  plugin_dir:
+    description: Plugin root with conf.yml and .featherexport. Auto-detects repo root when empty.
+    required: false
+    default: ""
+  build_frontend:
+    description: Build the frontend before packing.
+    required: false
+    default: "true"
+  frontend_dir:
+    description: Frontend path relative to plugin_dir.
+    required: false
+    default: Frontend/App
+  package_manager:
+    description: auto, pnpm, npm, yarn, or none.
+    required: false
+    default: auto
+  frontend_build_command:
+    description: Override the frontend build command.
+    required: false
+    default: ""
+  node_version:
+    description: Node.js version for frontend builds.
+    required: false
+    default: "24"
+  artifact_name:
+    description: Upload the .fpa as a workflow artifact with this name (leave empty to skip).
+    required: false
+    default: fpa-build
+  artifact_retention_days:
+    description: Artifact retention in days.
+    required: false
+    default: "30"
+
+outputs:
+  fpa_file:
+    description: Absolute path to the generated .fpa.
+    value: ${{ steps.build.outputs.fpa_file }}
+  fpa_filename:
+    description: Basename of the .fpa file.
+    value: ${{ steps.build.outputs.fpa_filename }}
+  plugin_version:
+    description: Version from conf.yml.
+    value: ${{ steps.build.outputs.plugin_version }}
+  plugin_identifier:
+    description: Identifier from conf.yml.
+    value: ${{ steps.build.outputs.plugin_identifier }}
+  plugin_dir:
+    description: Resolved plugin directory.
+    value: ${{ steps.plugin_dir.outputs.plugin_dir }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Resolve plugin directory
+      id: plugin_dir
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.plugin_dir }}" ]; then
+          dir="${{ inputs.plugin_dir }}"
+        elif [ -f "conf.yml" ]; then
+          dir="."
+        else
+          echo "::error::Could not find conf.yml. Set plugin_dir or place conf.yml at the repository root."
+          exit 1
+        fi
+        if [ ! -f "${dir}/conf.yml" ]; then
+          echo "::error::conf.yml not found in '${dir}'"
+          exit 1
+        fi
+        echo "plugin_dir=${dir}" >> "$GITHUB_OUTPUT"
+
+    - name: Check .featherexport
+      id: featherexport
+      shell: bash
+      run: |
+        plugin_dir="${{ steps.plugin_dir.outputs.plugin_dir }}"
+        export_file="${plugin_dir}/.featherexport"
+        if [ -f "${export_file}" ]; then
+          count="$(grep -vE '^\s*(#|$)' "${export_file}" | sed 's/#.*$//' | sed '/^\s*$/d' | wc -l | tr -d ' ')"
+          echo "has_featherexport=true" >> "$GITHUB_OUTPUT"
+          echo "exclusion_count=${count}" >> "$GITHUB_OUTPUT"
+        else
+          echo "has_featherexport=false" >> "$GITHUB_OUTPUT"
+          echo "exclusion_count=0" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Add a .featherexport file::No .featherexport in '${plugin_dir}'. Copy templates/featherexport.example from MythicalLTD/.github to your plugin root."
+        fi
+
+    - name: Resolve frontend tooling
+      id: frontend
+      shell: bash
+      run: |
+        if [ "${{ inputs.build_frontend }}" != "true" ] || [ "${{ inputs.package_manager }}" = "none" ]; then
+          echo "needs_node=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        plugin_dir="${{ steps.plugin_dir.outputs.plugin_dir }}"
+        frontend_dir="${{ inputs.frontend_dir }}"
+        if [ ! -d "${plugin_dir}/${frontend_dir}" ]; then
+          echo "needs_node=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        manager="${{ inputs.package_manager }}"
+        if [ "${manager}" = "auto" ]; then
+          base="${plugin_dir}/${frontend_dir}"
+          if [ -f "${base}/pnpm-lock.yaml" ]; then manager="pnpm"
+          elif [ -f "${base}/package-lock.json" ]; then manager="npm"
+          elif [ -f "${base}/yarn.lock" ]; then manager="yarn"
+          else manager="pnpm"
+          fi
+        fi
+        echo "needs_node=true" >> "$GITHUB_OUTPUT"
+        echo "resolved_manager=${manager}" >> "$GITHUB_OUTPUT"
+
+    - name: Setup pnpm
+      if: steps.frontend.outputs.needs_node == 'true' && steps.frontend.outputs.resolved_manager == 'pnpm'
+      uses: pnpm/action-setup@v4
+      with:
+        version: latest
+        run_install: false
+
+    - name: Setup Node.js (pnpm)
+      if: steps.frontend.outputs.needs_node == 'true' && steps.frontend.outputs.resolved_manager == 'pnpm'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: pnpm
+        cache-dependency-path: ${{ steps.plugin_dir.outputs.plugin_dir }}/${{ inputs.frontend_dir }}/pnpm-lock.yaml
+
+    - name: Setup Node.js (npm)
+      if: steps.frontend.outputs.needs_node == 'true' && steps.frontend.outputs.resolved_manager == 'npm'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: npm
+        cache-dependency-path: ${{ steps.plugin_dir.outputs.plugin_dir }}/${{ inputs.frontend_dir }}/package-lock.json
+
+    - name: Setup Node.js (yarn)
+      if: steps.frontend.outputs.needs_node == 'true' && steps.frontend.outputs.resolved_manager == 'yarn'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: yarn
+        cache-dependency-path: ${{ steps.plugin_dir.outputs.plugin_dir }}/${{ inputs.frontend_dir }}/yarn.lock
+
+    - name: Install zip
+      shell: bash
+      run: |
+        if ! command -v zip >/dev/null 2>&1; then
+          sudo apt-get update -qq
+          sudo apt-get install -y zip
+        fi
+
+    - name: Build .fpa
+      id: build
+      shell: bash
+      env:
+        BUILD_FRONTEND: ${{ inputs.build_frontend }}
+        FRONTEND_DIR: ${{ inputs.frontend_dir }}
+        PACKAGE_MANAGER: ${{ inputs.package_manager }}
+        FRONTEND_BUILD_COMMAND: ${{ inputs.frontend_build_command }}
+      run: |
+        chmod +x "${GITHUB_ACTION_PATH}/../../scripts/build-fpa.sh"
+        "${GITHUB_ACTION_PATH}/../../scripts/build-fpa.sh" "${{ steps.plugin_dir.outputs.plugin_dir }}"
+
+    - name: Upload artifact
+      if: inputs.artifact_name != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: ${{ steps.build.outputs.fpa_file }}
+        retention-days: ${{ inputs.artifact_retention_days }}
+
+    - name: Build summary
+      if: success()
+      shell: bash
+      run: |
+        {
+          echo "### FPA build"
+          echo "| Plugin | \`${{ steps.build.outputs.plugin_identifier }}\` v\`${{ steps.build.outputs.plugin_version }}\` |"
+          echo "| File | \`${{ steps.build.outputs.fpa_filename }}\` |"
+        } >> "$GITHUB_STEP_SUMMARY"

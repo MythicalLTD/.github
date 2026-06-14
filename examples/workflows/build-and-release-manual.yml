@@ -1,0 +1,39 @@
+# Manual marketplace release from the GitHub Actions UI.
+#
+# Copy to: .github/workflows/release-fpa-manual.yml
+
+name: Release FPA (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver override (leave empty to use conf.yml)
+        required: false
+        type: string
+      changelog:
+        description: Release notes
+        required: true
+        type: string
+      environment:
+        description: dev or production
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - production
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MythicalLTD/.github/actions/build-and-release@v1
+        with:
+          product_id: "123"
+          environment: ${{ inputs.environment }}
+          version: ${{ inputs.version }}
+          changelog: ${{ inputs.changelog }}
+          package_manager: auto
+        secrets:
+          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

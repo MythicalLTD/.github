@@ -1,0 +1,58 @@
+name: Publish Mythic Marketplace Release
+description: Upload a release file to the Mythic Marketplace publish API.
+branding:
+  icon: upload
+  color: blue
+
+inputs:
+  product_id:
+    description: Marketplace product ID.
+    required: true
+  environment:
+    description: dev or production.
+    required: false
+    default: dev
+  version:
+    description: Semantic version.
+    required: true
+  changelog:
+    description: Release notes.
+    required: true
+  file_path:
+    description: Path to the release file on the runner.
+    required: true
+  title:
+    description: Optional release title.
+    required: false
+    default: ""
+
+secrets:
+  release_token:
+    description: Upload secret (mp_rel_...) from Automated Release Uploads.
+    required: true
+
+outputs:
+  release_id:
+    description: Created release ID.
+    value: ${{ steps.publish.outputs.release_id }}
+  release_url:
+    description: Publish API URL for the release.
+    value: ${{ steps.publish.outputs.release_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Publish release
+      id: publish
+      shell: bash
+      env:
+        MYTHIC_RELEASE_TOKEN: ${{ secrets.release_token }}
+      run: |
+        chmod +x "${GITHUB_ACTION_PATH}/../../scripts/publish-release.sh"
+        "${GITHUB_ACTION_PATH}/../../scripts/publish-release.sh" \
+          "${{ inputs.product_id }}" \
+          "${{ inputs.environment }}" \
+          "${{ inputs.version }}" \
+          "${{ inputs.changelog }}" \
+          "${{ inputs.file_path }}" \
+          "${{ inputs.title }}"

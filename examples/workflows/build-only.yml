@@ -1,0 +1,16 @@
+# Build .fpa on push — action syntax (recommended).
+#
+# Copy to: .github/workflows/build-fpa.yml
+
+name: Build FPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MythicalLTD/.github/actions/build-fpa@v1

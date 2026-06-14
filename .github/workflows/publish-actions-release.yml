@@ -1,0 +1,135 @@
+name: Publish actions release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Validate tag and resolve major version
+        id: meta
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Release tag must be semver (e.g. v1.0.0). Got: ${TAG}"
+            exit 1
+          fi
+
+          major="v$(echo "${TAG#v}" | cut -d. -f1)"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "major=${major}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: ${TAG} (major: ${major}, prerelease: ${IS_PRERELEASE})"
+
+      - name: Verify actions and scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+
+          for action in build-fpa publish-release build-and-release; do
+            if [[ ! -f "actions/${action}/action.yml" ]]; then
+              echo "::error::Missing actions/${action}/action.yml"
+              missing=1
+            fi
+          done
+
+          for script in build-fpa.sh publish-release.sh; do
+            if [[ ! -f "scripts/${script}" ]]; then
+              echo "::error::Missing scripts/${script}"
+              missing=1
+            fi
+          done
+
+          if (( missing )); then
+            exit 1
+          fi
+
+          echo "All actions and scripts present"
+
+      - name: Update moving major tag
+        if: github.event.release.prerelease == false
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          MAJOR: ${{ steps.meta.outputs.major }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -fa "${MAJOR}" "${TAG}" -m "Track latest ${MAJOR}.x (${TAG})"
+          git push origin "${MAJOR}" --force
+          echo "Moved ${MAJOR} → ${TAG}"
+
+      - name: Append usage notes to release
+        if: github.event.release.prerelease == false
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          MAJOR: ${{ steps.meta.outputs.major }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          existing="$(gh release view "${TAG}" --json body --jq .body)"
+
+          if [[ "${existing}" == *"MythicalLTD/.github/actions"* ]]; then
+            echo "Usage block already present — skipping"
+            exit 0
+          fi
+
+          {
+            printf '%s\n\n---\n\n### Usage\n\n' "${existing}"
+            printf '```yaml\n- uses: MythicalLTD/.github/actions/build-and-release@%s\n```\n\n' "${MAJOR}"
+            printf 'Exact pin: `@%s`\n\n' "${TAG}"
+            printf 'Docs: https://github.com/MythicalLTD/.github/blob/main/docs/getting-started.md\n'
+          } > /tmp/release-notes.md
+
+          gh release edit "${TAG}" --notes-file /tmp/release-notes.md
+
+      - name: Write job summary
+        shell: bash
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          MAJOR: ${{ steps.meta.outputs.major }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          {
+            echo "## Actions release published"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Tag | \`${TAG}\` |"
+            echo "| Major pin | \`${MAJOR}\` |"
+            echo "| Prerelease | ${IS_PRERELEASE} |"
+            echo ""
+            if [[ "${IS_PRERELEASE}" == "false" ]]; then
+              echo "Moving tag **${MAJOR}** now points at **${TAG}**."
+              echo ""
+            else
+              echo "Prerelease — moving major tag was **not** updated."
+              echo ""
+            fi
+            echo "### Plugin author pin"
+            echo ""
+            echo "\`\`\`yaml"
+            echo "- uses: MythicalLTD/.github/actions/build-fpa@${MAJOR}"
+            echo "- uses: MythicalLTD/.github/actions/publish-release@${MAJOR}"
+            echo "- uses: MythicalLTD/.github/actions/build-and-release@${MAJOR}"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"

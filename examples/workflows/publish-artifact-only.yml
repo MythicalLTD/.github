@@ -1,0 +1,30 @@
+# Upload a pre-built artifact (jar, zip, fpa, etc.).
+#
+# Copy to: .github/workflows/publish.yml
+
+name: Publish to Marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+      changelog:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: MythicalLTD/.github/actions/publish-release@v1
+        with:
+          product_id: "123"
+          environment: dev
+          version: ${{ inputs.version }}
+          changelog: ${{ inputs.changelog }}
+          file_path: dist/my-plugin.fpa
+        secrets:
+          release_token: ${{ secrets.MYTHIC_RELEASE_TOKEN }}

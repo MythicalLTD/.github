@@ -1,0 +1,25 @@
+# Full addon with frontend built in CI
+
+.git/
+.github/
+.gitignore
+*.log
+*.tmp
+.env
+.env.*
+
+*/node_modules/*
+vendor/
+
+/demo/*
+banner.png
+README.md
+CHANGELOG.md
+
+# Source — built assets (e.g. Frontend/dist/) stay in the archive
+*/App/*
+
+# Local dev tooling
+.vscode/
+.idea/
+*.code-workspace

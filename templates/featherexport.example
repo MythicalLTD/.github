@@ -1,0 +1,46 @@
+# FeatherPanel Export Ignore File
+# This file specifies files and folders to exclude when exporting the plugin.
+# Supports glob patterns similar to .gitignore.
+#
+# SETUP: Copy this file to your plugin root (next to conf.yml) and rename to:
+#   .featherexport
+#
+# Docs: https://github.com/MythicalLTD/.github/blob/main/docs/featherexport.md
+
+# --- Example: Exclude development files ---
+# *.log
+# *.tmp
+# .env
+
+# --- Example: Exclude directories ---
+# node_modules/
+# .git/
+# vendor/
+
+# --- Example: Exclude specific files ---
+# README.md
+# .gitignore
+
+# --- Recommended patterns for most addons with a CI-built frontend ---
+
+# Drop dependency trees anywhere in the plugin
+*/node_modules/*
+
+# Demo / preview content not meant for production installs
+/demo/*
+
+# Marketing assets and docs
+banner.png
+README.md
+
+# Frontend source (CI builds first, then packs — ship compiled output only)
+# Matches Frontend/App/, Backend/App/, etc.
+*/App/*
+
+# --- Optional extras (uncomment as needed) ---
+
+# .git/
+# .github/
+# .env
+# vendor/
+# *.log

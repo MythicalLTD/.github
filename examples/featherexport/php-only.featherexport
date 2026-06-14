@@ -1,0 +1,15 @@
+# PHP-only addon — no frontend build in CI
+
+.git/
+.github/
+.gitignore
+*.log
+.env
+.env.*
+vendor/
+composer.lock
+README.md
+demo/
+tests/
+phpunit.xml
+.phpunit.result.cache

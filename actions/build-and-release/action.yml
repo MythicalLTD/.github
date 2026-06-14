@@ -1,0 +1,102 @@
+name: Build and Release FeatherPanel FPA
+description: Build a .fpa and publish it to the Mythic Marketplace in one step.
+branding:
+  icon: rocket
+  color: green
+
+inputs:
+  product_id:
+    description: Marketplace product ID.
+    required: true
+  environment:
+    description: dev or production.
+    required: false
+    default: dev
+  changelog:
+    description: Release notes.
+    required: true
+  version:
+    description: Override version from conf.yml when set.
+    required: false
+    default: ""
+  title:
+    description: Optional release title.
+    required: false
+    default: ""
+  plugin_dir:
+    description: Plugin root with conf.yml. Auto-detects when empty.
+    required: false
+    default: ""
+  build_frontend:
+    description: Build frontend before packing.
+    required: false
+    default: "true"
+  frontend_dir:
+    description: Frontend path relative to plugin_dir.
+    required: false
+    default: Frontend/App
+  package_manager:
+    description: auto, pnpm, npm, yarn, or none.
+    required: false
+    default: auto
+  frontend_build_command:
+    description: Override frontend build command.
+    required: false
+    default: ""
+  node_version:
+    description: Node.js version.
+    required: false
+    default: "24"
+
+secrets:
+  release_token:
+    description: Upload secret (mp_rel_...).
+    required: true
+
+outputs:
+  fpa_file:
+    description: Path to the built .fpa.
+    value: ${{ steps.build.outputs.fpa_file }}
+  fpa_filename:
+    description: Basename of the .fpa.
+    value: ${{ steps.build.outputs.fpa_filename }}
+  plugin_version:
+    description: Version from conf.yml.
+    value: ${{ steps.build.outputs.plugin_version }}
+  plugin_identifier:
+    description: Identifier from conf.yml.
+    value: ${{ steps.build.outputs.plugin_identifier }}
+  release_id:
+    description: Marketplace release ID.
+    value: ${{ steps.publish.outputs.release_id }}
+  release_url:
+    description: Marketplace release URL.
+    value: ${{ steps.publish.outputs.release_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build .fpa
+      id: build
+      uses: ../build-fpa
+      with:
+        plugin_dir: ${{ inputs.plugin_dir }}
+        build_frontend: ${{ inputs.build_frontend }}
+        frontend_dir: ${{ inputs.frontend_dir }}
+        package_manager: ${{ inputs.package_manager }}
+        frontend_build_command: ${{ inputs.frontend_build_command }}
+        node_version: ${{ inputs.node_version }}
+        artifact_name: ""
+
+    - name: Publish to marketplace
+      id: publish
+      uses: ../publish-release
+      with:
+        product_id: ${{ inputs.product_id }}
+        environment: ${{ inputs.environment }}
+        version: ${{ inputs.version != '' && inputs.version || steps.build.outputs.plugin_version }}
+        changelog: ${{ inputs.changelog }}
+        file_path: ${{ steps.build.outputs.fpa_file }}
+        title: ${{ inputs.title }}
+      secrets:
+        release_token: ${{ secrets.release_token }}

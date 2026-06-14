@@ -1,0 +1,10 @@
+# FeatherPanel export ignore — minimal example
+#
+# Copy to your plugin root as .featherexport
+# See docs/featherexport.md for full guide
+
+*/node_modules/*
+/demo/*
+banner.png
+README.md
+*/App/*
