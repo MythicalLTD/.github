@@ -143,12 +143,12 @@ jobs:
             printf '| [`build-and-release`](https://github.com/MythicalLTD/.github/tree/%s/actions/build-and-release) | Build `.fpa` + upload |\n\n' "${TAG}"
             printf '### Usage\n\n'
             printf '```yaml\n'
-            printf '# Build .fpa only\n'
-            printf '- uses: MythicalLTD/.github/actions/build-fpa@%s\n\n' "${MAJOR}"
-            printf '# Upload an existing file\n'
-            printf '- uses: MythicalLTD/.github/actions/publish-release@%s\n\n' "${MAJOR}"
-            printf '# Build + upload\n'
-            printf '- uses: MythicalLTD/.github/actions/build-and-release@%s\n' "${MAJOR}"
+            printf '%s\n' '# Build .fpa only'
+            printf '%s\n\n' "- uses: MythicalLTD/.github/actions/build-fpa@${MAJOR}"
+            printf '%s\n' '# Upload an existing file'
+            printf '%s\n\n' "- uses: MythicalLTD/.github/actions/publish-release@${MAJOR}"
+            printf '%s\n' '# Build + upload'
+            printf '%s\n' "- uses: MythicalLTD/.github/actions/build-and-release@${MAJOR}"
             printf '```\n\n'
             printf 'Exact pin: `@%s` · Docs: https://github.com/MythicalLTD/.github/blob/main/docs/getting-started.md\n' "${TAG}"
           } > /tmp/release-notes.md
