@@ -5,6 +5,10 @@ branding:
   color: purple
 
 inputs:
+  skip_checkout:
+    description: Skip checkout when the caller already checked out and may have modified files.
+    required: false
+    default: "false"
   plugin_dir:
     description: Plugin root with conf.yml and .featherexport. Auto-detects repo root when empty.
     required: false
@@ -59,6 +63,7 @@ runs:
   using: composite
   steps:
     - name: Checkout repository
+      if: inputs.skip_checkout != 'true'
       uses: actions/checkout@v4
 
     - name: Resolve plugin directory

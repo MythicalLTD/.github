@@ -23,6 +23,10 @@ inputs:
     description: Optional release title.
     required: false
     default: ""
+  skip_checkout:
+    description: Skip checkout when the caller already checked out and may have modified files.
+    required: false
+    default: "false"
   plugin_dir:
     description: Plugin root with conf.yml. Auto-detects when empty.
     required: false
@@ -78,6 +82,7 @@ runs:
       id: build
       uses: ../build-fpa
       with:
+        skip_checkout: ${{ inputs.skip_checkout }}
         plugin_dir: ${{ inputs.plugin_dir }}
         build_frontend: ${{ inputs.build_frontend }}
         frontend_dir: ${{ inputs.frontend_dir }}

@@ -109,8 +109,8 @@ if [ ! -f "${CONF_FILE}" ]; then
   exit 1
 fi
 
-PLUGIN_VERSION="$(grep -E "^\s*version:" "${CONF_FILE}" | sed -E 's/.*version:\s*["'\'']?([^"'\''']+)["'\'']?/\1/' | tr -d ' ')"
-PLUGIN_IDENTIFIER="$(grep -E "^\s*identifier:" "${CONF_FILE}" | sed -E 's/.*identifier:\s*["'\'']?([^"'\''']+)["'\'']?/\1/' | tr -d ' ')"
+PLUGIN_VERSION="$(grep -E '^\s*version:' "${CONF_FILE}" | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//; s/["'\'']//g' | tr -d ' ')"
+PLUGIN_IDENTIFIER="$(grep -E '^\s*identifier:' "${CONF_FILE}" | head -1 | sed -E 's/^[[:space:]]*identifier:[[:space:]]*//; s/["'\'']//g' | tr -d ' ')"
 
 if [ -z "${PLUGIN_VERSION}" ]; then
   echo -e "${RED}Error: Could not extract version from conf.yml${NC}"

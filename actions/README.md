@@ -8,6 +8,7 @@ Use as **steps** in your own workflows — like `actions/checkout@v4`.
 
 | Input | Default | Description |
 | --- | --- | --- |
+| `skip_checkout` | `false` | Skip checkout when the caller already checked out (e.g. after patching `conf.yml`) |
 | `plugin_dir` | auto | Plugin root with `conf.yml` |
 | `build_frontend` | `true` | Build frontend before packing |
 | `frontend_dir` | `Frontend/App` | Frontend path |
@@ -28,6 +29,22 @@ Use as **steps** in your own workflows — like `actions/checkout@v4`.
   with:
     build_frontend: "false"
     package_manager: none
+```
+
+When you modify files before build (e.g. bump `conf.yml` version), checkout first and pass `skip_checkout: "true"`:
+
+```yaml
+- uses: actions/checkout@v4
+
+- name: Sync conf.yml version
+  run: sed -i -E "s/^([[:space:]]*version:[[:space:]]*).*/\1${VERSION}/" conf.yml
+
+- uses: MythicalLTD/.github/actions/build-fpa@v1
+  with:
+    skip_checkout: "true"
+    build_frontend: "false"
+    package_manager: none
+    artifact_name: ""
 ```
 
 ---
