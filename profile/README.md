@@ -1,18 +1,41 @@
-<p href="#" align="center"><img src="https://discord.com/api/guilds/1175092855421800570/widget.png?style=shield"> 
-<p href="#" align="center"><img src="https://img.shields.io/badge/License-MIT-green.svg"> 
-<p href="#" align="center"><a href='https://ko-fi.com/Y8Y7NUNPR' target='_blank'><img height='20' style='border:0px;height:20px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></p>
+<div align="center">
+
+  <img src="banner/banner_final.png" alt="MythicalSystems Banner" width="100%" />
+
+  <br /><br />
 
 
-# MythicalSystems
+  # MythicalSystems
 
-MythicalSystems is an open-source project development group that makes awesome projects for the community.
+  **Crafting powerful open-source solutions for the global developer community.**
 
-*Project by 
-[@NaysKutzu](https://github.com/NaysKutzu),
-[@Nyxalis](https://github.com/Nyxalis)*
+  [![Discord Shield](https://discord.com/api/guilds/1399372922480492608/widget.png?style=shield)](https://discord.mythical.systems)
+  [![Website](https://img.shields.io/badge/Website-mythical.systems-7289da)](https://www.mythical.systems)
 
-Website: https://www.mythical.systems
+</div>
 
-Discord: https://discord.mythical.systems
+---
 
-*All projects are under copyright: MythicalSystems 2021-2026*
+### About Us
+
+MythicalSystems is an open-source development organization focused on building modern, efficient, and accessible applications, hosting tools, and management dashboards for the community.
+
+* **Founded & Led by:** [@NaysKutzu](https://github.com/NaysKutzu)
+* **Official Website:** [mythical.systems](https://www.mythical.systems)
+* **Community Discord:** [discord.mythical.systems](https://discord.mythical.systems)
+
+---
+
+### Support & Connect
+
+If you love our open-source tools and want to support ongoing infrastructure and development:
+
+* 💬 **Discord:** [Join our community](https://discord.mythical.systems) to get support, report issues, or connect with other developers.
+
+---
+
+<div align="center">
+
+*All projects are under copyright © MythicalSystems 2021–2026*
+
+</div>
